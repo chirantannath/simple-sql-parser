@@ -1,7 +1,8 @@
 CC = gcc
 CXX = g++
-DEBUGFLAGS = -DDEBUG -g -Og
-RELEASEFLAGS = -O2 -s
+COMMONFLAGS = -std=c++17
+DEBUGFLAGS = $(COMMONFLAGS) -DDEBUG -g -Og
+RELEASEFLAGS = $(COMMONFLAGS) -O2 -s
 TARGET = simple-sql-parser.out
 
 #Change this in the makefile when compiling for release.
