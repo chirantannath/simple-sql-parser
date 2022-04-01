@@ -1,0 +1,52 @@
+(symb, 'a', 1)
+('.', '.', None)
+('(', '(', None)
+(symb, 'a', 2)
+('|', '|', None)
+(symb, 'd', 3)
+(')', ')', None)
+('*', '*', None)
+(eoe, None, 4)
+{1}('.', '.', None){4}
+|	{4}(eoe, None, 4){4}
+|	{1}('.', '.', None){1,2,3}
+|	|	{2,3}('*', '*', None)?{2,3}
+|	|	|	{2,3}('|', '|', None){2,3}
+|	|	|	|	{3}(symb, 'd', 3){3}
+|	|	|	|	{2}(symb, 'a', 2){2}
+|	|	{1}(symb, 'a', 1){1}
+1: {2,3,4}
+2: {2,3,4}
+3: {2,3,4}
+For state {}
+On input symbol a we go to {}
+On input symbol d we go to {}
+
+For state {1}
+On input symbol a we go to {2,3,4}
+On input symbol d we go to {}
+
+For state {2,3,4}
+On input symbol a we go to {2,3,4}
+On input symbol d we go to {2,3,4}
+
+Start state (stage 1): frozenset({1})
+Initial groups: {{{2,3,4}},{{},{1}}}
+New groups: {{{1}},{{}},{{2,3,4}}}
+New groups: {{{}},{{1}},{{2,3,4}}}
+The following states have no relation to input symbols.
+
+For state 0
+On input symbol a we go to 2.
+On input symbol d we go to 1.
+This is start state.
+
+For state 1
+On input symbol a we go to 1.
+On input symbol d we go to 1.
+
+For state 2
+On input symbol a we go to 2.
+On input symbol d we go to 2.
+This is an accepting state.
+

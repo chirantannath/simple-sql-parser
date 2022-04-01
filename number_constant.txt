@@ -1,0 +1,131 @@
+('(', '(', None)
+(symb, 's', 1)
+('|', '|', None)
+(epsilon, '?', None)
+(')', ')', None)
+('.', '.', None)
+(symb, 'd', 2)
+('.', '.', None)
+(symb, 'd', 3)
+('*', '*', None)
+('.', '.', None)
+(symb, 'p', 4)
+('.', '.', None)
+(symb, 'd', 5)
+('.', '.', None)
+(symb, 'd', 6)
+('*', '*', None)
+('.', '.', None)
+('(', '(', None)
+(symb, 'e', 7)
+('.', '.', None)
+('(', '(', None)
+(symb, 's', 8)
+('|', '|', None)
+(epsilon, '?', None)
+(')', ')', None)
+('.', '.', None)
+(symb, 'd', 9)
+('.', '.', None)
+(symb, 'd', 10)
+('*', '*', None)
+('|', '|', None)
+(epsilon, '?', None)
+(')', ')', None)
+(eoe, None, 11)
+{1,2}('.', '.', None){11}
+|	{11}(eoe, None, 11){11}
+|	{1,2}('.', '.', None){9,10,5,6}
+|	|	{7}('|', '|', None)?{9,10}
+|	|	|	{}(epsilon, '?', None)?{}
+|	|	|	{7}('.', '.', None){9,10}
+|	|	|	|	{10}('*', '*', None)?{10}
+|	|	|	|	|	{10}(symb, 'd', 10){10}
+|	|	|	|	{7}('.', '.', None){9}
+|	|	|	|	|	{9}(symb, 'd', 9){9}
+|	|	|	|	|	{7}('.', '.', None){8,7}
+|	|	|	|	|	|	{8}('|', '|', None)?{8}
+|	|	|	|	|	|	|	{}(epsilon, '?', None)?{}
+|	|	|	|	|	|	|	{8}(symb, 's', 8){8}
+|	|	|	|	|	|	{7}(symb, 'e', 7){7}
+|	|	{1,2}('.', '.', None){5,6}
+|	|	|	{6}('*', '*', None)?{6}
+|	|	|	|	{6}(symb, 'd', 6){6}
+|	|	|	{1,2}('.', '.', None){5}
+|	|	|	|	{5}(symb, 'd', 5){5}
+|	|	|	|	{1,2}('.', '.', None){4}
+|	|	|	|	|	{4}(symb, 'p', 4){4}
+|	|	|	|	|	{1,2}('.', '.', None){2,3}
+|	|	|	|	|	|	{3}('*', '*', None)?{3}
+|	|	|	|	|	|	|	{3}(symb, 'd', 3){3}
+|	|	|	|	|	|	{1,2}('.', '.', None){2}
+|	|	|	|	|	|	|	{2}(symb, 'd', 2){2}
+|	|	|	|	|	|	|	{1}('|', '|', None)?{1}
+|	|	|	|	|	|	|	|	{}(epsilon, '?', None)?{}
+|	|	|	|	|	|	|	|	{1}(symb, 's', 1){1}
+9: {10,11}
+10: {10,11}
+5: {11,6,7}
+6: {11,6,7}
+8: {9}
+7: {8,9}
+4: {5}
+2: {3,4}
+3: {3,4}
+1: {2}
+For state {3,4}
+On input symbol p we go to {5}
+On input symbol d we go to {3,4}
+On input symbol s we go to {}
+On input symbol e we go to {}
+
+For state {2}
+On input symbol p we go to {}
+On input symbol d we go to {3,4}
+On input symbol s we go to {}
+On input symbol e we go to {}
+
+For state {1,2}
+On input symbol p we go to {}
+On input symbol d we go to {3,4}
+On input symbol s we go to {2}
+On input symbol e we go to {}
+
+For state {11,6,7}
+On input symbol p we go to {}
+On input symbol d we go to {11,6,7}
+On input symbol s we go to {}
+On input symbol e we go to {8,9}
+
+For state {8,9}
+On input symbol p we go to {}
+On input symbol d we go to {10,11}
+On input symbol s we go to {9}
+On input symbol e we go to {}
+
+For state {9}
+On input symbol p we go to {}
+On input symbol d we go to {10,11}
+On input symbol s we go to {}
+On input symbol e we go to {}
+
+For state {}
+On input symbol p we go to {}
+On input symbol d we go to {}
+On input symbol s we go to {}
+On input symbol e we go to {}
+
+For state {10,11}
+On input symbol p we go to {}
+On input symbol d we go to {10,11}
+On input symbol s we go to {}
+On input symbol e we go to {}
+
+For state {5}
+On input symbol p we go to {}
+On input symbol d we go to {11,6,7}
+On input symbol s we go to {}
+On input symbol e we go to {}
+
+Start state (stage 1): frozenset({1, 2})
+Initial groups: {{{11,6,7},{10,11}},{{3,4},{2},{1,2},{8,9},{9},{},{5}}}
