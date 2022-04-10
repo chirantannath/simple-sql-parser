@@ -1,7 +1,7 @@
 CC = gcc
 CXX = g++
 COMMONFLAGS = -std=c++17
-DEBUGFLAGS = $(COMMONFLAGS) -DDEBUG -g -Og
+DEBUGFLAGS = $(COMMONFLAGS) -DDEBUG -g
 RELEASEFLAGS = $(COMMONFLAGS) -O2 -s
 TARGET = simple-sql-parser.out
 
@@ -24,7 +24,7 @@ error.o: error.cpp error.hpp lexer.hpp
 	$(CXX) $(FLAGS) -o $@ -c $<
 
 clean:
-	rm -f *.o
+	rm -fv *.o
 
 all-clean: clean
-	rm -f $(TARGET)
+	rm -fv $(TARGET)

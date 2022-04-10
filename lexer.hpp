@@ -3,10 +3,10 @@
 #include <istream>
 #include <string>
 #include <vector>
-#include <string>
 #include <stack>
 #include <unordered_set>
 #include <initializer_list>
+#include <cctype>
 
 namespace SimpleSqlParser {
 typedef unsigned char ttype_parent;
@@ -24,27 +24,34 @@ enum TokenType : ttype_parent {
     EOI//Indicate end of all input.
 };
 
+#ifdef DEBUG
+extern const char *TokenTypeNames[];
+#endif
+
 class DFA {
 protected:
     std::unordered_set<mstate> acceptStates;
     mstate startState, currentState;
-    bool failed; //On any other error
-    virtual mstate transition(mstate fromState, char ch) = 0;
+    unsigned failed : 1; //On any other error
+    unsigned noStateError : 1; 
+    virtual mstate transition(mstate fromState, char ch) noexcept = 0;
 public:
     const TokenType ttype;
-    DFA(TokenType ttype = NONE) : failed(false), ttype(ttype) {}
+    DFA(TokenType ttype = NONE) : failed(0), ttype(ttype), noStateError(0) {}
     DFA(
         std::initializer_list<decltype(acceptStates)::value_type> acceptStates,
         mstate startState,
         TokenType ttype = NONE
-    ) : acceptStates(acceptStates), startState(startState), currentState(startState), failed(false), ttype(ttype) {}
-    virtual ~DFA() = default;
+    ) : acceptStates(acceptStates), startState(startState), currentState(startState), failed(0), ttype(ttype), noStateError(0) {}
+    virtual ~DFA() noexcept = default;
 
-    void reset() {currentState = startState; failed = false;}
-    virtual bool isAlphabet(char ch) const = 0;
-    void process(char ch);
-    void process(const char * const);
-    bool isAccepting() const {return !failed && acceptStates.find(currentState) != acceptStates.end();}
+    void reset() noexcept {currentState = startState; failed = 0; noStateError = 0;}
+    virtual bool isAlphabet(char ch) const noexcept = 0;
+    void process(char ch) noexcept;
+    void process(const char * const) noexcept;
+    bool isAccepting() const noexcept {return !failed && !noStateError && acceptStates.find(currentState) != acceptStates.end();}
+    bool isNoStateError() const noexcept {return noStateError ? true : false;}
+    bool isPermaFailed() const noexcept {return failed || noStateError;}
 };
 
 struct Lexer {
@@ -52,24 +59,40 @@ struct Lexer {
 private:
     TokenType currentToken;
     std::string currentLexeme;
+    Location currentLexemeLocation;
     std::istream *src;
     
     std::stack<char> pushback_buffer;
-    Location location;
-    bool isGood() const {return !pushback_buffer.empty() || src->good();}
-    void pushback(char ch);
+    decltype(Location::lineNumber) currentLineNumber;
+    decltype(Location::startColumnNumber) currentColumnNumber;
+
+    bool isGood() const noexcept {return !pushback_buffer.empty() || src->good();}
+    char getChar(); char peekChar();
+    void pushback(char); //buffer overflow may happen
+    void ignoreWhitespaces() {while(isGood() && (std::isspace(peekChar()) || peekChar()==0)) getChar();}
 
     const std::vector<DFA *> machines;
     static std::vector<DFA *> constructDFA();
 
+#ifndef DEBUG
     TokenType getNextToken();
+#endif
 public:
+#ifdef DEBUG 
+    TokenType getNextToken(); //private or public depending on compilation status
+    void showstatus(); //Show current token status to standard output
+#endif
     Lexer(std::istream *src);
-    virtual ~Lexer();
+    virtual ~Lexer() noexcept;
 
-    TokenType getCurrentToken() const {return currentToken;}
-    const char *getCurrentLexeme() const {return currentLexeme.c_str();}
-    size_t getCurrentLexemeLength() const {return currentLexeme.length();}
+    TokenType getCurrentToken() const noexcept {return currentToken;}
+    const char *getCurrentLexeme() const noexcept {return currentLexeme.c_str();}
+    const Location &getCurrentLexemeLocation() const noexcept {return currentLexemeLocation;}
+    size_t getCurrentLexemeLength() const noexcept {return currentLexeme.length();}
+    decltype(currentLineNumber) getCurrentLineNumber() const noexcept {return currentLineNumber;}
+    decltype(currentColumnNumber) getCurrentColumnNumber() const noexcept {return currentColumnNumber;}
+
+    bool match(TokenType);
 };
 }
 
