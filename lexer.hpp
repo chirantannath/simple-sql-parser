@@ -14,7 +14,7 @@ typedef size_t mstate;
 
 enum TokenType : ttype_parent {
     //Maintain priority order of tokens.
-    NONE, 
+    NONE, //None indicates an invalid token. Also used to indicate epsilon (empty string) during parser generation.
     CREATE, TABLE, SELECT, INSERT, VALUES, INTO, PRIMARY, KEY, FROM, WHERE, BETWEEN, LIKE, IN, //Keywords
     STAROP, EQUALOP, GREATEROP, LESSOP, PARENOPENOP, PARENCLOSEOP, COMMAOP, EOSOP, //EOS=';' //Separator symbols
     INT, CHAR, NUMBER, //CHAR = VARCHAR; implies a string. NUMBER is double (IEE-754 double-precision floating point).
