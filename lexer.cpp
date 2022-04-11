@@ -19,17 +19,15 @@ const std::array<TokenType, EOI+1> TokenTypes = {
     EOI//Indicate end of all input.
 };
 
-#ifdef DEBUG 
 const char *TokenTypeNames[] = {
     "NONE",
     "CREATE", "TABLE", "SELECT", "INSERT", "VALUES", "INTO", "PRIMARY", "KEY", "FROM", "WHERE", "BETWEEN", "LIKE", "IN",
-    "STAROP", "EQUALOP", "GREATEROP", "LESSOP", "PARENOPENOP", "PARENCLOSEOP", "COMMAOP", "EOSOP",
+    "*(star)", "=(equals)", ">(greater)", "<(less)", "\'(\'(open-parentheses)", "\')\'(close-parentheses)", "\',\'(comma)", "\';\'(end-of-statement)",
     "INT", "CHAR", "NUMBER",
-    "INT_CONSTANT", "CHAR_CONSTANT", "NUMBER_CONSTANT",
-    "IDENTIFIER",
-    "EOI"
+    "integer-constant", "string-constant", "numeric-constant",
+    "identifier",
+    "end-of-input"
 };
-#endif
 
 //DFAs
 void DFA::process(char ch) noexcept {
@@ -312,5 +310,9 @@ void Lexer::showstatus() {
 Lexer::Lexer(std::istream *src) : src(src), machines(constructDFA()), currentToken(NONE), currentLineNumber(1),
     currentColumnNumber(1) {}
 Lexer::~Lexer() noexcept {for(DFA *ptr : machines) delete ptr;}
-bool Lexer::match(TokenType mttype)  {return false;}
+bool Lexer::match(TokenType mttype)  {
+    if(currentToken != mttype) return false;
+    getNextToken();
+    return true;
+}
 }

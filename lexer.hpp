@@ -26,9 +26,7 @@ enum TokenType : ttype_parent {
 };
 extern const std::array<TokenType, EOI+1> TokenTypes;
 
-#ifdef DEBUG
 extern const char *TokenTypeNames[];
-#endif
 
 class DFA {
 protected:
@@ -76,12 +74,9 @@ private:
     const std::vector<DFA *> machines;
     static std::vector<DFA *> constructDFA();
 
-#ifndef DEBUG
-    TokenType getNextToken();
-#endif
 public:
+    TokenType getNextToken();
 #ifdef DEBUG 
-    TokenType getNextToken(); //private or public depending on compilation status
     void showstatus(); //Show current token status to standard output
 #endif
     Lexer(std::istream *src);

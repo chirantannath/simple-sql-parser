@@ -8,6 +8,7 @@
 namespace SimpleSqlParser {
 
 const char *constructMessage(const Lexer::Location &loc, const char *prefix = nullptr);
+std::string constructMessageStr(const Lexer::Location &loc, const char *prefix = nullptr);
 
 class SyntaxError : public std::exception {
     const char *_what;

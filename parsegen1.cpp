@@ -160,7 +160,7 @@ void ParserGeneratorPhase1::removeLeftRecursion() {
         newRules.push_back(rules[i]);
         auto itr = newNonterminals.find(i);
         if(itr != newNonterminals.end()) {
-            nonterminalArray.push_back(itr->second.first);
+            newNonterminalArray.push_back(itr->second.first);
             newRules.push_back(itr->second.second);
         };
     }
@@ -248,7 +248,7 @@ void ParserGeneratorPhase1::leftFactoring() {
             newRules.push_back(rules[i]);
             auto itr = newNonterminals.find(i);
             if(itr != newNonterminals.end()) {
-                nonterminalArray.push_back(itr->second.first);
+                newNonterminalArray.push_back(itr->second.first);
                 newRules.push_back(itr->second.second);
             };
         }

@@ -17,7 +17,8 @@ ParserGeneratorPhase1::ParserGeneratorPhase1() :
         }},
         {"constant_list", {
             {}, //Empty
-            {"constant", COMMAOP, "constant_list"}
+            {"constant", COMMAOP, "constant_list"},
+            {"constant"}
         }},
         {"constant", {
             {INT_CONSTANT}, {CHAR_CONSTANT}, {NUMBER_CONSTANT}

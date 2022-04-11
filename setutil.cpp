@@ -34,6 +34,7 @@ template<class T, class In> std::vector<T> addVectors(In v1_begin, In v1_end, In
     return result;
 }
 template<class T, class Itr> Itr bsearch(Itr begin, Itr end, const T& val) {
+    if(begin == end) return end;
     Itr result = std::lower_bound(begin, end, val);
     if(result == end || (*result) != val) return end;
     else return result;
@@ -46,8 +47,8 @@ template<class T> bool begins_with(const std::vector<T> &seq, const std::vector<
 }
 template<class Itr> bool isdisjoint(Itr first1, Itr last1, Itr first2, Itr last2) {
     while(first1 != last1 && first2 != last2) {
-        if((*first1) < (*last1)) first1++;
-        else if ((*last1) < (*first1)) last1++;
+        if((*first1) < (*first2)) first1++;
+        else if ((*first2) < (*first1)) first2++;
         else return false; //Equal elements
     }
     return true;

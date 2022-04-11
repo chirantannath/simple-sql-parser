@@ -15,7 +15,7 @@ public:
     std::vector<std::string> nonterminalArray;
     void parsingTableAssign(size_t, TokenType, size_t);
 #else
-    void parsingTableAssign(size_t i, TokenType k, size_t si) {parsingTable[k][i] = stackAction(si);};
+    void parsingTableAssign(size_t i, TokenType k, size_t si) {parsingTable[i][k] = stackAction(si);};
 #endif
     std::vector<std::vector<std::vector<Symbol>>> rules;
     std::vector<std::vector<TokenType>> first, follow;
@@ -25,6 +25,8 @@ public:
     void generateParsingTable();
     ParserGeneratorPhase3(ParserGeneratorPhase2 &pgp2) {init(pgp2);}
     ParserGeneratorPhase3() {ParserGeneratorPhase2 pgp2; init(pgp2);}
+public:
+    friend class SimpleSqlParser::Parser;
 };
 }
 

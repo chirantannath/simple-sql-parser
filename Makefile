@@ -2,9 +2,12 @@ CC = gcc
 CXX = g++
 COMMONFLAGS = -std=c++17
 DEBUGFLAGS = $(COMMONFLAGS) -DDEBUG -g
+TESTFLAGS = $(COMMONFLAGS) -g
+#Test flags is debug flags without the debug. Used for testing for release.
 RELEASEFLAGS = $(COMMONFLAGS) -O2 -s
 TARGET = simple-sql-parser.out
-HEADERS = error.hpp lexer.hpp parser.hpp setutil.hpp parsegen1.hpp parsegen2.hpp parsegen3.hpp
+HEADERS = error.hpp lexer.hpp parser.hpp setutil.hpp parsegen1.hpp parsegen2.hpp parsegen3.hpp setutil.cpp
+#setutil.cpp acts as a header because it is filled with template definitions. 
 
 #Change this in the makefile when checking for debug; or
 #make 'FLAGS=$(DEBUGFLAGS)' <other parameters>
