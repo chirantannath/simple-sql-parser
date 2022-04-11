@@ -3,14 +3,12 @@
 #include "lexer.hpp"
 #include "error.hpp"
 #include "parser.hpp"
-#include "parsegen1.hpp"
+#include "parsegen2.hpp"
 
 int main(int argc, char *argv[]) {
 #ifdef DEBUG 
-    SimpleSqlParser::ParserGeneratorPhase1 pgp1;
-    pgp1.outputRules();
-    pgp1.removeLeftRecursion();
-    pgp1.leftFactoring();
-    pgp1.outputRules();
+    SimpleSqlParser::ParserGeneratorPhase2 pgp2;
+    pgp2.outputRules();
+    pgp2.generateFirstSets();
 #endif
 }

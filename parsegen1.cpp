@@ -1,49 +1,11 @@
 #include "parsegen1.hpp"
 #include <unordered_map>
 #include <algorithm>
+#include "setutil.hpp"
 
-namespace {//Declarations private to this file.
-template<class T> void setify(std::vector<T> &v) {
-    std::sort(v.begin(), v.end());
-    auto end = std::unique(v.begin(), v.end());
-    v.erase(end, v.end());
-    v.shrink_to_fit();
-}
-template<class T> std::vector<T> difference(std::vector<T> &v1, std::vector<T> &v2) {
-    setify(v1); setify(v2);
-    std::vector<T> result; result.resize(v1.size());
-    auto end = std::set_difference(v1.cbegin(), v1.cend(), v2.cbegin(), v2.cend(), result.begin());
-    result.erase(end, result.end());
-    setify(result);
-    return result;
-}
-template<class T> std::vector<T> addVectors(const std::vector<T> &v1, const std::vector<T> &v2) {
-    std::vector<T> result(v1); result.resize(v1.size() + v2.size());
-    std::copy(v2.cbegin(), v2.cend(), result.begin() + v1.size());
-    result.shrink_to_fit();
-    return result;
-}
-//This one requires a type argument
-template<class T, class In> std::vector<T> addVectors(In v1_begin, In v1_end, In v2_begin, In v2_end) {
-    std::vector<T> result(v1_begin, v1_end); const auto sz = v1_end - v1_begin;
-    result.resize(sz + (v2_end - v2_begin));
-    std::copy(v2_begin, v2_end, result.begin() + sz);
-    result.shrink_to_fit();
-    return result;
-}
-template<class T, class Itr> Itr bsearch_exact(Itr begin, Itr end, const T& val) {
-    Itr result = std::lower_bound(begin, end, val);
-    if(result == end || (*result) != val) return end;
-    else return result;
-}
-template<class T> bool begins_with(const std::vector<T> &seq, const std::vector<T> &subseq) {
-    if(subseq.size() > seq.size()) return false;
-    for(size_t i = 0; i < subseq.size(); i++)
-        if(seq[i] != subseq[i]) return false;
-    return true;
-}
 #ifdef DEBUG
-std::string strSubRule(const std::vector<SimpleSqlParser::ParserGeneratorPhase1::IntermediateSymbol> &subRule) {
+namespace {//Declarations private to this file.
+std::string _strSubRule(const std::vector<SimpleSqlParser::ParserGeneratorPhase1::IntermediateSymbol> &subRule) {
     std::string buffer;
     if(subRule.size() < 1) return std::string("?");
     for(size_t i = 0; i < subRule.size(); i++) {
@@ -52,16 +14,16 @@ std::string strSubRule(const std::vector<SimpleSqlParser::ParserGeneratorPhase1:
     } 
     return buffer;
 }
-std::string strrule(const std::vector<std::vector<SimpleSqlParser::ParserGeneratorPhase1::IntermediateSymbol>> &rule) {
+std::string _strrule(const std::vector<std::vector<SimpleSqlParser::ParserGeneratorPhase1::IntermediateSymbol>> &rule) {
     std::string buffer;
     for(size_t i = 0; i < rule.size(); i++) {
-        buffer += strSubRule(rule[i]);
+        buffer += _strSubRule(rule[i]);
         if(i < (rule.size() - 1)) buffer += " | ";
     }
     return buffer;
-}
+}}
 #endif
-}
+
 
 namespace SimpleSqlParser {
 //ParserGeneratorPhase1
@@ -119,7 +81,7 @@ ParserGeneratorPhase1::IntermediateSymbol& ParserGeneratorPhase1::IntermediateSy
 #ifdef DEBUG 
 void ParserGeneratorPhase1::outputRules() {
     for(size_t i = 0; i < nonterminalArray.size(); i++)
-        std::cout<<nonterminalArray[i]<<" ::= "<<strrule(rules[i])<<std::endl;
+        std::cout<<nonterminalArray[i]<<" ::= "<<_strrule(rules[i])<<std::endl;
 }
 #endif
 
@@ -148,18 +110,18 @@ ParserGeneratorPhase1::removeLeftRecursion(size_t nonterminalIndex) {
 #endif
         return {}; //Calls default ctor
     }
-    setify(leftRecursionRule);
-    nonLeftRecursionRule = difference(rule, leftRecursionRule);
+    SetUtil::setify(leftRecursionRule);
+    nonLeftRecursionRule = SetUtil::difference(rule, leftRecursionRule);
     const std::vector<IntermediateSymbol> singleton({newNonterminal});
-    for(auto& subRule: nonLeftRecursionRule) newRule.push_back(addVectors(subRule, singleton));
-    setify(newRule); rules[nonterminalIndex] = newRule;
-    for(auto& subRule: leftRecursionRule) newRule2.push_back(addVectors<IntermediateSymbol>(subRule.cbegin()+1, subRule.cend(), singleton.cbegin(), singleton.cend()));
+    for(auto& subRule: nonLeftRecursionRule) newRule.push_back(SetUtil::addVectors(subRule, singleton));
+    SetUtil::setify(newRule); rules[nonterminalIndex] = newRule;
+    for(auto& subRule: leftRecursionRule) newRule2.push_back(SetUtil::addVectors<IntermediateSymbol>(subRule.cbegin()+1, subRule.cend(), singleton.cbegin(), singleton.cend()));
     newRule2.push_back(std::vector<IntermediateSymbol>()); //Add epsilon specifier
-    setify(newRule2); 
+    SetUtil::setify(newRule2); 
 #ifdef DEBUG
     std::cout<<"New rules:\n";
-    std::cout<<nonterminal<<" ::= "<<strrule(newRule)<<std::endl;
-    std::cout<<newNonterminal<<" ::= "<<strrule(newRule2)<<std::endl;
+    std::cout<<nonterminal<<" ::= "<<_strrule(newRule)<<std::endl;
+    std::cout<<newNonterminal<<" ::= "<<_strrule(newRule2)<<std::endl;
 #endif
     return {newNonterminal, newRule2};
 }
@@ -177,12 +139,12 @@ void ParserGeneratorPhase1::removeLeftRecursion() {
             for(auto& subRule : rules[i])
                 if(subRule.size() > 0 && subRule[0] == nonterminalArray[j])
                     for(auto& jSubRule : rules[j])
-                        newRuleSet.push_back(addVectors<IntermediateSymbol>(jSubRule.cbegin(), jSubRule.cend(), subRule.cbegin()+1, subRule.cend()));
+                        newRuleSet.push_back(SetUtil::addVectors<IntermediateSymbol>(jSubRule.cbegin(), jSubRule.cend(), subRule.cbegin()+1, subRule.cend()));
                 else newRuleSet.push_back(subRule);
-            setify(newRuleSet);
+            SetUtil::setify(newRuleSet);
             rules[i] = newRuleSet;
 #ifdef DEBUG
-            std::cout<<nonterminalArray[i]<<" ::= "<<strrule(newRuleSet)<<std::endl;
+            std::cout<<nonterminalArray[i]<<" ::= "<<_strrule(newRuleSet)<<std::endl;
 #endif
         }
         const auto newNonterminal = removeLeftRecursion(i);
@@ -235,24 +197,24 @@ ParserGeneratorPhase1::leftFactoring(size_t nonterminalIndex) {
     }
 
     for(auto& subRule : rule)
-        if(begins_with(subRule, longestCommonSubsequence)) leftFactoringRule.push_back(subRule);
-    setify(leftFactoringRule);
-    nonLeftFactoringRule = difference(rule, leftFactoringRule);
+        if(SetUtil::begins_with(subRule, longestCommonSubsequence)) leftFactoringRule.push_back(subRule);
+    SetUtil::setify(leftFactoringRule);
+    nonLeftFactoringRule = SetUtil::difference(rule, leftFactoringRule);
 
-    ruleSet1 = nonLeftFactoringRule; ruleSet1.push_back(addVectors(longestCommonSubsequence, std::vector<IntermediateSymbol>({newNonterminal})));
-    setify(ruleSet1); rules[nonterminalIndex] = ruleSet1;
+    ruleSet1 = nonLeftFactoringRule; ruleSet1.push_back(SetUtil::addVectors(longestCommonSubsequence, std::vector<IntermediateSymbol>({newNonterminal})));
+    SetUtil::setify(ruleSet1); rules[nonterminalIndex] = ruleSet1;
 
     for(auto& subRule : leftFactoringRule) {
         std::vector<IntermediateSymbol> slice; slice.resize(subRule.size() - longestCommonSubsequence.size());
         std::copy(subRule.cbegin()+longestCommonSubsequence.size(), subRule.cend(), slice.begin());
         ruleSet2.push_back(std::move(slice));
-    } setify(ruleSet2);
+    } SetUtil::setify(ruleSet2);
 
 #ifdef DEBUG
-    std::cout<<"Longest common subsequence selected: "<<strSubRule(longestCommonSubsequence)<<std::endl;
+    std::cout<<"Longest common subsequence selected: "<<_strSubRule(longestCommonSubsequence)<<std::endl;
     std::cout<<"\nNew rules:\n";
-    std::cout<<nonterminal<<" ::= "<<strrule(ruleSet1)<<std::endl;
-    std::cout<<newNonterminal<<" ::= "<<strrule(ruleSet2)<<std::endl;
+    std::cout<<nonterminal<<" ::= "<<_strrule(ruleSet1)<<std::endl;
+    std::cout<<newNonterminal<<" ::= "<<_strrule(ruleSet2)<<std::endl;
 #endif
 
     return {newNonterminal, ruleSet2};
@@ -296,9 +258,9 @@ ParserGeneratorPhase1::ParserGeneratorPhase1(std::initializer_list<std::pair<std
     for(auto &rule : cfg) {
         nonterminalArray.push_back(rule.first);
         rules.push_back(rule.second);
-        setify(rules.back());
+        SetUtil::setify(rules.back());
     }
-}
+}}
 
-
-}
+//We include cpp because templates need their implementation.
+#include "setutil.cpp" 

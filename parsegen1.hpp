@@ -13,8 +13,8 @@
 #endif
 
 namespace SimpleSqlParser {
-
-//Factory class for Parser; phase 1 (rules may change)
+class ParserGeneratorPhase2; //Forward declaration required. see parsegen2.hpp
+//Factory class for Parser; phase 1: left-recursion removal and left-factoring (rules may change)
 class ParserGeneratorPhase1 {
 #ifdef DEBUG 
 public: //The following becomes implicitly public.
@@ -88,9 +88,12 @@ public: //The following becomes implicitly public.
     void removeLeftRecursion();
     std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>> leftFactoring(size_t);
     void leftFactoring();
-
+    
     ParserGeneratorPhase1(); //Call default SQL CFG configured in cfg.cpp
     ParserGeneratorPhase1(std::initializer_list<std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>>);
+
+public:
+    friend class SimpleSqlParser::ParserGeneratorPhase2;
 };
 
 }
