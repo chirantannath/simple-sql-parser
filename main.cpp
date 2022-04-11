@@ -8,7 +8,8 @@
 int main(int argc, char *argv[]) {
 #ifdef DEBUG 
     SimpleSqlParser::ParserGeneratorPhase2 pgp2;
+    std::cout<<std::endl;
     pgp2.outputRules();
-    pgp2.generateFirstSets();
+    pgp2.checkIfLL1();
 #endif
 }

@@ -12,6 +12,7 @@ template<class T> std::vector<T> addVectors(const std::vector<T>&, const std::ve
 template<class T, class In> std::vector<T> addVectors(In, In, In, In);
 template<class T, class Itr> Itr bsearch(Itr, Itr, const T&);
 template<class T> bool begins_with(const std::vector<T>&, const std::vector<T>&);
+template<class Itr> bool isdisjoint(Itr, Itr, Itr, Itr);
 
 }
 

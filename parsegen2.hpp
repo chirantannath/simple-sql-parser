@@ -9,6 +9,7 @@
 namespace SimpleSqlParser {
 //Factory class for Parser, phase 2: first and follow sets (at the end we will know if we are really LL(1))
 class ParserGeneratorPhase2 {
+protected:
 #ifdef DEBUG 
 public:
     void outputRules();
@@ -19,7 +20,9 @@ public:
 
     void init(ParserGeneratorPhase1&);
     void generateFirstSets();
-    //void generateFollowSets();
+    std::vector<TokenType> compositeFirstSet(std::vector<Symbol>::const_iterator, std::vector<Symbol>::const_iterator);
+    void generateFollowSets();
+    void checkIfLL1(); //throws SyntaxException
     ParserGeneratorPhase2(ParserGeneratorPhase1 &pgp1) {init(pgp1);}
     ParserGeneratorPhase2() {ParserGeneratorPhase1 pgp1; init(pgp1);}
 };

@@ -42,5 +42,13 @@ template<class T> bool begins_with(const std::vector<T> &seq, const std::vector<
         if(seq[i] != subseq[i]) return false;
     return true;
 }
+template<class Itr> bool isdisjoint(Itr first1, Itr last1, Itr first2, Itr last2) {
+    while(first1 != last1 && first2 != last2) {
+        if((*first1) < (*last1)) first1++;
+        else if ((*last1) < (*first1)) last1++;
+        else return false; //Equal elements
+    }
+    return true;
+}
 
 }
