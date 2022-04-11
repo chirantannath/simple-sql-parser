@@ -4,15 +4,15 @@ COMMONFLAGS = -std=c++17
 DEBUGFLAGS = $(COMMONFLAGS) -DDEBUG -g
 RELEASEFLAGS = $(COMMONFLAGS) -O2 -s
 TARGET = simple-sql-parser.out
-HEADERS = error.hpp lexer.hpp parser.hpp setutil.hpp parsegen1.hpp parsegen2.hpp
+HEADERS = error.hpp lexer.hpp parser.hpp setutil.hpp parsegen1.hpp parsegen2.hpp parsegen3.hpp
 
-#Change this in the makefile when compiling for release; or
-#make 'FLAGS=$(RELEASEFLAGS)' <other parameters>
-FLAGS = $(DEBUGFLAGS)
+#Change this in the makefile when checking for debug; or
+#make 'FLAGS=$(DEBUGFLAGS)' <other parameters>
+FLAGS = $(RELEASEFLAGS)
 
 all: $(TARGET)
 
-$(TARGET): main.o error.o lexer.o parser.o cfg.o setutil.o parsegen1.o parsegen2.o
+$(TARGET): main.o error.o lexer.o parser.o cfg.o setutil.o parsegen1.o parsegen2.o parsegen3.o
 	$(CXX) $(FLAGS) -o $@ $+
 
 main.o: main.cpp $(HEADERS)
@@ -37,6 +37,9 @@ parsegen1.o: parsegen1.cpp $(HEADERS)
 	$(CXX) $(FLAGS) -o $@ -c $<
 
 parsegen2.o: parsegen2.cpp $(HEADERS)
+	$(CXX) $(FLAGS) -o $@ -c $<
+
+parsegen3.o: parsegen3.cpp $(HEADERS)
 	$(CXX) $(FLAGS) -o $@ -c $<
 
 clean:

@@ -6,6 +6,7 @@
 #include <stack>
 #include <unordered_set>
 #include <initializer_list>
+#include <array>
 #include <cctype>
 
 namespace SimpleSqlParser {
@@ -23,6 +24,7 @@ enum TokenType : ttype_parent {
     IDENTIFIER, 
     EOI//Indicate end of all input.
 };
+extern const std::array<TokenType, EOI+1> TokenTypes;
 
 #ifdef DEBUG
 extern const char *TokenTypeNames[];

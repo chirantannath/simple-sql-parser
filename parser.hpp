@@ -40,23 +40,29 @@ struct Symbol {
             (symbolType ? symbol.nonterminalIndex >= symb.symbol.nonterminalIndex : symbol.terminal >= symb.symbol.terminal);
     }
 };
-inline void terminal(Symbol& symb, TokenType terminal) {symb.symbolType = 0; symb.symbol.terminal = terminal;}
-inline void nonterminal(Symbol& symb, size_t nonterminalIndex) {symb.symbolType = 1; symb.symbol.nonterminalIndex = nonterminalIndex;}
 #ifdef DEBUG
 std::string strSubRule(const std::vector<Symbol>&, const std::vector<std::string>&);
 std::string strrule(const std::vector<std::vector<Symbol>>&, const std::vector<std::string>&);
 #endif
 
 enum ErrorRecovery : unsigned char {POP, SCAN};
+#ifdef DEBUG 
+extern const char *ErrorRecoveryNames[];
+#endif
 
 struct ParsingTableEntry {
     union {
         ErrorRecovery recoveryAction;
         size_t subRuleIndex;
         size_t &stackAction() noexcept {return subRuleIndex;} //type alias
+        size_t stackAction() const noexcept {return subRuleIndex;} //type alias
     } action;
     unsigned actionType : 1; //1 or true value if stackAction
 };
+inline ParsingTableEntry errorRecovery(ErrorRecovery action) 
+{ParsingTableEntry e; e.actionType = 0; e.action.recoveryAction = action; return e;}
+inline ParsingTableEntry stackAction(size_t subRuleIndex) 
+{ParsingTableEntry e; e.actionType = 1; e.action.subRuleIndex = subRuleIndex; return e;}
 
 }
 

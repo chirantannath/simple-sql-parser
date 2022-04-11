@@ -1,8 +1,10 @@
+#ifndef __SETUTIL_IMPL__
+#define __SETUTIL_IMPL__
+
 #include "setutil.hpp"
 #include <algorithm>
 
 namespace SetUtil {
-
 template<class T> void setify(std::vector<T> &v) {
     std::sort(v.begin(), v.end());
     auto end = std::unique(v.begin(), v.end());
@@ -49,6 +51,6 @@ template<class Itr> bool isdisjoint(Itr first1, Itr last1, Itr first2, Itr last2
         else return false; //Equal elements
     }
     return true;
-}
+}}
 
-}
+#endif

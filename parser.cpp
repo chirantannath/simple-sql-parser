@@ -18,6 +18,7 @@ std::string strrule(const std::vector<std::vector<Symbol>> &rule, const std::vec
         if(i < (rule.size() - 1)) buffer += " | ";
     }
     return buffer;
-} 
+}
+const char *ErrorRecoveryNames[] = {"POP", "SCAN"}; 
 #endif
 }

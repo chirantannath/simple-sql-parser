@@ -3,13 +3,12 @@
 #include "lexer.hpp"
 #include "error.hpp"
 #include "parser.hpp"
-#include "parsegen2.hpp"
+#include "parsegen3.hpp"
 
 int main(int argc, char *argv[]) {
 #ifdef DEBUG 
-    SimpleSqlParser::ParserGeneratorPhase2 pgp2;
+    SimpleSqlParser::ParserGeneratorPhase3 pgp3;
     std::cout<<std::endl;
-    pgp2.outputRules();
-    pgp2.checkIfLL1();
+    pgp3.generateParsingTable();;
 #endif
 }

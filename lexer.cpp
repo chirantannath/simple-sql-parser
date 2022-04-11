@@ -8,6 +8,17 @@
 #endif
 
 namespace SimpleSqlParser {
+const std::array<TokenType, EOI+1> TokenTypes = {
+    NONE, //None indicates an invalid token. Also used to indicate epsilon (empty string) during parser generation.
+    CREATE, TABLE, SELECT, INSERT, VALUES, INTO, PRIMARY, KEY, FROM, WHERE, BETWEEN, LIKE, IN, //Keywords
+    STAROP, EQUALOP, GREATEROP, LESSOP, PARENOPENOP, PARENCLOSEOP, COMMAOP, EOSOP, //EOS=';' //Separator symbols
+    INT, CHAR, NUMBER, //CHAR = VARCHAR; implies a string. NUMBER is double (IEE-754 double-precision floating point).
+    INT_CONSTANT, CHAR_CONSTANT, NUMBER_CONSTANT, 
+    //Keep INT_CONSTANT BEFORE NUMBER_CONSTANT because INT_CONSTANT is a subset of NUMBER_CONSTANT.
+    IDENTIFIER, 
+    EOI//Indicate end of all input.
+};
+
 #ifdef DEBUG 
 const char *TokenTypeNames[] = {
     "NONE",
@@ -197,7 +208,7 @@ void Lexer::pushback(char ch) {
     else currentColumnNumber--;
 }
 std::vector<DFA *> Lexer::constructDFA() {
-    std::vector<DFA *> mvec;
+    std::vector<DFA *> mvec; mvec.reserve(TokenTypes.size());
     mvec.push_back(new IgnoreCaseMatch("CREATE", CREATE));
     mvec.push_back(new IgnoreCaseMatch("TABLE", TABLE));
     mvec.push_back(new IgnoreCaseMatch("SELECT", SELECT));

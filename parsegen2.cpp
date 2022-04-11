@@ -24,8 +24,10 @@ void ParserGeneratorPhase2::init(ParserGeneratorPhase1 &pgp1) {
     pgp1.leftFactoring();
 #ifdef DEBUG 
     pgp1.outputRules();
+    nonterminalArray = pgp1.nonterminalArray;
+#else
+    nonterminalArray = std::move(pgp1.nonterminalArray); //We do not know if move or copy?
 #endif
-    nonterminalArray = pgp1.nonterminalArray; //We do not know if move or copy?
     rules.resize(pgp1.rules.size());
     std::transform(pgp1.rules.cbegin(), pgp1.rules.cend(), rules.begin(), [&](const std::vector<std::vector<ParserGeneratorPhase1::IntermediateSymbol>> &rule) {
         std::vector<std::vector<Symbol>> newRule; newRule.resize(rule.size());
@@ -39,7 +41,7 @@ void ParserGeneratorPhase2::init(ParserGeneratorPhase1 &pgp1) {
                 else symb.symbol.terminal = isymb.symbol.terminal;
                 return symb;
             });
-            return newSubRule;
+            newSubRule.shrink_to_fit(); return newSubRule;
         }); SetUtil::setify(newRule);
         return newRule;
     });
@@ -87,7 +89,8 @@ void ParserGeneratorPhase2::generateFirstSets() {
     }
 #endif
 }
-std::vector<TokenType> ParserGeneratorPhase2::compositeFirstSet(std::vector<Symbol>::const_iterator begin, std::vector<Symbol>::const_iterator end) {
+std::vector<TokenType> compositeFirstSet(std::vector<Symbol>::const_iterator begin, 
+    std::vector<Symbol>::const_iterator end, const std::vector<std::vector<TokenType>> &first) {
     std::vector<TokenType> result;
     for(std::vector<Symbol>::const_iterator itr = begin; itr != end; itr++) {
         const auto& symbol = *itr; 
@@ -127,7 +130,7 @@ void ParserGeneratorPhase2::generateFollowSets() {
                     std::vector<TokenType> newSet(follow[targetSymbol.symbol.nonterminalIndex]); //explicit copy required
                     if(newSet.empty()) runScan = true;
                     
-                    auto betaSet = compositeFirstSet(subRule.begin()+i+1, subRule.end());
+                    const auto betaSet = compositeFirstSet(subRule.begin()+i+1, subRule.end(), first);
                     newSet.insert(newSet.end(), betaSet.begin(), betaSet.end()); SetUtil::setify(newSet);
                     auto temp_itr = SetUtil::bsearch(newSet.begin(), newSet.end(), NONE);
                     if(temp_itr != newSet.end()) newSet.erase(temp_itr);
@@ -173,8 +176,8 @@ void ParserGeneratorPhase2::checkIfLL1() {
         for(size_t j = 0; j < rule.size()-1; j++) for(size_t k = j+1; k < rule.size(); k++) {
             const auto& prod1 = rule[j], prod2 = rule[k];
             if(prod1.empty() || prod2.empty()) continue;
-            auto prod1First = compositeFirstSet(prod1.begin(), prod1.end());
-            auto prod2First = compositeFirstSet(prod2.begin(), prod2.end());
+            const auto prod1First = compositeFirstSet(prod1.begin(), prod1.end(), first);
+            const auto prod2First = compositeFirstSet(prod2.begin(), prod2.end(), first);
             if(SetUtil::isdisjoint(prod1First.begin(), prod1First.end(), prod2First.begin(), prod2First.end())) continue;
             err<<"Grammar is not LL(1); for nonterminal"<<nonterminal
                 <<"\nFirst sets for two of the productions of the nonterminal are not disjoint.";

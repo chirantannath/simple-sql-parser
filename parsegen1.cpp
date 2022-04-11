@@ -164,7 +164,8 @@ void ParserGeneratorPhase1::removeLeftRecursion() {
             newRules.push_back(itr->second.second);
         };
     }
-    nonterminalArray = newNonterminalArray; rules = newRules;
+    nonterminalArray = std::move(newNonterminalArray); rules = std::move(newRules);
+    //Do not shrink. Phase not complete.
 }
 std::pair<std::string, std::vector<std::vector<ParserGeneratorPhase1::IntermediateSymbol>>>
 ParserGeneratorPhase1::leftFactoring(size_t nonterminalIndex) {
@@ -251,8 +252,9 @@ void ParserGeneratorPhase1::leftFactoring() {
                 newRules.push_back(itr->second.second);
             };
         }
-        nonterminalArray = newNonterminalArray; rules = newRules;
+        nonterminalArray = std::move(newNonterminalArray); rules = std::move(newRules);
     } while(runScan);
+    nonterminalArray.shrink_to_fit(); rules.shrink_to_fit();
 }
 ParserGeneratorPhase1::ParserGeneratorPhase1(std::initializer_list<std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>> cfg) {
     for(auto &rule : cfg) {
