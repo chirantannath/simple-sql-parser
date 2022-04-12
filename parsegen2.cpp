@@ -38,8 +38,10 @@ void ParserGeneratorPhase2::init(ParserGeneratorPhase1 &pgp1) {
                 if((symb.symbolType = isymb.symbolType)) {
                     symb.symbol.nonterminalIndex = 
                         std::find(nonterminalArray.cbegin(), nonterminalArray.cend(), *(isymb.symbol.nonterminal)) - nonterminalArray.cbegin();
+#ifdef DEBUG 
                     if(symb.symbol.nonterminalIndex >= nonterminalArray.size())
                         throw SyntaxError("Nonterminal " + (*isymb.symbol.nonterminal) + " not found. Check your CFG.");
+#endif
                 } else symb.symbol.terminal = isymb.symbol.terminal;
                 return symb;
             });
@@ -53,6 +55,7 @@ void ParserGeneratorPhase2::init(ParserGeneratorPhase1 &pgp1) {
 #endif
 }
 void ParserGeneratorPhase2::generateFirstSets() {
+    if(firstSetsDone) return;
     bool runScan;
     first.resize(nonterminalArray.size());
     std::vector<bool> allStarted(nonterminalArray.size(), false);
@@ -97,6 +100,7 @@ void ParserGeneratorPhase2::generateFirstSets() {
         std::cout<<"\n";
     }
 #endif
+    firstSetsDone = true;
 }
 std::vector<TokenType> compositeFirstSet(std::vector<Symbol>::const_iterator begin, 
     std::vector<Symbol>::const_iterator end, const std::vector<std::vector<TokenType>> &first) {
@@ -123,6 +127,7 @@ std::vector<TokenType> compositeFirstSet(std::vector<Symbol>::const_iterator beg
     SetUtil::setify(result); return result;
 }
 void ParserGeneratorPhase2::generateFollowSets() {
+    if(followSetsDone) return;
     generateFirstSets(); //Required
     follow.resize(nonterminalArray.size());
     follow[0] = std::vector<TokenType>({EOI});
@@ -170,7 +175,8 @@ void ParserGeneratorPhase2::generateFollowSets() {
         for(auto& symb: follow[i]) std::cout<<TokenTypeNames[symb]<<" ";
         std::cout<<"\n";
     }
-#endif 
+#endif
+    followSetsDone = true;
 }
 #ifdef DEBUG 
 void ParserGeneratorPhase2::checkIfLL1() {

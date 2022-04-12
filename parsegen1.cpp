@@ -136,6 +136,7 @@ ParserGeneratorPhase1::removeLeftRecursion(size_t nonterminalIndex) {
     return {newNonterminal, newRule2};
 }
 void ParserGeneratorPhase1::removeLeftRecursion() {
+    if(leftRecursionRemovalDone) return;
     std::unordered_map<size_t, std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>> newNonterminals; 
     for(size_t i = 0; i < nonterminalArray.size(); i++) {
 #ifdef DEBUG
@@ -176,6 +177,7 @@ void ParserGeneratorPhase1::removeLeftRecursion() {
     }
     nonterminalArray = std::move(newNonterminalArray); rules = std::move(newRules);
     //Do not shrink. Phase not complete.
+    leftRecursionRemovalDone = true;
 }
 std::pair<std::string, std::vector<std::vector<ParserGeneratorPhase1::IntermediateSymbol>>>
 ParserGeneratorPhase1::leftFactoring(size_t nonterminalIndex) {
@@ -231,6 +233,7 @@ ParserGeneratorPhase1::leftFactoring(size_t nonterminalIndex) {
     return {newNonterminal, ruleSet2};
 }
 void ParserGeneratorPhase1::leftFactoring() {
+    if(leftFactoringDone) return;
     //Multiple runs for left-factoring.
     bool runScan; 
 #ifdef DEBUG
@@ -265,8 +268,10 @@ void ParserGeneratorPhase1::leftFactoring() {
         nonterminalArray = std::move(newNonterminalArray); rules = std::move(newRules);
     } while(runScan);
     nonterminalArray.shrink_to_fit(); rules.shrink_to_fit();
+    leftFactoringDone = true;
 }
-ParserGeneratorPhase1::ParserGeneratorPhase1(std::initializer_list<std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>> cfg) {
+ParserGeneratorPhase1::ParserGeneratorPhase1(std::initializer_list<std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>> cfg) 
+: leftRecursionRemovalDone(false), leftFactoringDone(false) {
     for(auto &rule : cfg) {
         nonterminalArray.push_back(rule.first);
         rules.push_back(rule.second);

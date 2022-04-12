@@ -23,8 +23,10 @@ public:
 
     void init(ParserGeneratorPhase2&);
     void generateParsingTable();
-    ParserGeneratorPhase3(ParserGeneratorPhase2 &pgp2) {init(pgp2);}
-    ParserGeneratorPhase3() {ParserGeneratorPhase2 pgp2; init(pgp2);}
+    ParserGeneratorPhase3(ParserGeneratorPhase2 &pgp2) : parsingTableDone(false) {init(pgp2);}
+    ParserGeneratorPhase3() : parsingTableDone(false) {ParserGeneratorPhase2 pgp2; init(pgp2);}
+
+    unsigned parsingTableDone : 1;
 public:
     friend class SimpleSqlParser::Parser;
 };

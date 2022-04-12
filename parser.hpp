@@ -63,8 +63,7 @@ public:
     std::vector<std::vector<ParsingTableEntry>> parsingTable;
     std::deque<Symbol> parsingStack;
     Lexer lexer;
-    bool firstParse;
-
+    
     Parser(ParserGeneratorPhase3&, std::istream *);
     void init(ParserGeneratorPhase3&);
 public:
@@ -73,7 +72,11 @@ public:
     void reopen(std::istream *);
     void continueParse(); //continue or start; throws exception on error and can be used to resume even after error.
     
-    bool unrecoverable; //Flag set if we get an unrecoverable error (usually unexpected tokens.)
+    //The following must be at the end since these are bit-fields.
+private:
+    unsigned firstParse : 1;
+public:
+    unsigned unrecoverable : 1; //Flag set if we get an unrecoverable error (usually unexpected tokens.)
 };
 
 }

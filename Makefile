@@ -5,6 +5,8 @@ DEBUGFLAGS = $(COMMONFLAGS) -Werror -DDEBUG -g
 TESTFLAGS = $(COMMONFLAGS) -g
 #Test flags is debug flags without the debug. Used for testing for release.
 RELEASEFLAGS = $(COMMONFLAGS) -O2 -s
+PROFILEFLAGS = $(COMMONFLAGS) -pg
+#Profile flags used for profiling (performance measurement)
 TARGET = simple-sql-parser.out
 HEADERS = error.hpp lexer.hpp parser.hpp setutil.hpp parsegen1.hpp parsegen2.hpp parsegen3.hpp setutil.cpp
 #setutil.cpp acts as a header because it is filled with template definitions. 

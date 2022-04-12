@@ -35,6 +35,7 @@ void ParserGeneratorPhase3::init(ParserGeneratorPhase2 &pgp2) {
 #endif
 }
 void ParserGeneratorPhase3::generateParsingTable() {
+    if(parsingTableDone) return;
 #ifdef DEBUG 
     std::cout<<"\nGenerating parsing table...\n";
 #endif
@@ -80,6 +81,7 @@ void ParserGeneratorPhase3::generateParsingTable() {
         }
     }
 #endif
+    parsingTableDone = true;
 }
 
 }

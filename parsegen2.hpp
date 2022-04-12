@@ -23,9 +23,11 @@ public:
 #ifdef DEBUG
     void checkIfLL1(); //throws SyntaxException
 #endif
-    ParserGeneratorPhase2(ParserGeneratorPhase1 &pgp1) {init(pgp1);}
-    ParserGeneratorPhase2() {ParserGeneratorPhase1 pgp1; init(pgp1);}
+    ParserGeneratorPhase2(ParserGeneratorPhase1 &pgp1) : firstSetsDone(false), followSetsDone(false) {init(pgp1);}
+    ParserGeneratorPhase2() : firstSetsDone(false), followSetsDone(false) {ParserGeneratorPhase1 pgp1; init(pgp1);}
 
+    unsigned firstSetsDone : 1;
+    unsigned followSetsDone : 1;
 public:
     friend class SimpleSqlParser::ParserGeneratorPhase3;
 };

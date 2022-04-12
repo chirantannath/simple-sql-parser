@@ -76,6 +76,8 @@ public: //The following becomes implicitly public.
     ParserGeneratorPhase1(); //Call default SQL CFG configured in cfg.cpp
     ParserGeneratorPhase1(std::initializer_list<std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>>);
 
+    unsigned leftRecursionRemovalDone : 1;
+    unsigned leftFactoringDone : 1;
 public:
     friend class SimpleSqlParser::ParserGeneratorPhase2;
 };
