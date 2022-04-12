@@ -17,6 +17,7 @@ void ParserGeneratorPhase3::parsingTableAssign(size_t i, TokenType k, size_t sub
         err<<"Conflicting rules are:\n";
         err<<nonterminalArray[i]<<" ::= "<<strSubRule(rules[i][subRuleIndex], nonterminalArray)<<std::endl;
         err<<nonterminalArray[i]<<" ::= "<<strSubRule(rules[i][parsingTable[i][k].action.subRuleIndex], nonterminalArray)<<std::endl;
+        throw SyntaxError(err.str());
     }
     else parsingTable[i][k] = stackAction(subRuleIndex);
 }
