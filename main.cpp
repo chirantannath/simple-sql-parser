@@ -25,11 +25,17 @@ int forFile(std::istream *file, const char *fname, SimpleSqlParser::Parser *pars
 
 int main(int argc, char *argv[]) {
     SimpleSqlParser::Parser *parser = nullptr;
-    try {parser = new SimpleSqlParser::Parser;}
+#ifdef DEBUG
+    try {
+#endif
+        parser = new SimpleSqlParser::Parser;
+#ifdef DEBUG
+    }
     catch(SimpleSqlParser::SyntaxError &ex) {
         std::cerr<<"SQL Definition error: "<<ex.what()<<"\n";
         return 1;
     }
+#endif
     int errorSum = 0;
     ++argv, --argc;
     if(argc == 0) errorSum = forFile(&std::cin, "<standard input>", parser);
