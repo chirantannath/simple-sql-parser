@@ -69,7 +69,7 @@ private:
     bool isGood() const noexcept {return !pushback_buffer.empty() || src->good();}
     char getChar(); char peekChar();
     void pushback(char); //buffer overflow may happen
-    void ignoreWhitespaces() {while(isGood() && (std::isspace(peekChar()) || peekChar()==0)) getChar();}
+    void ignoreWhitespaces();// {while(isGood() && (std::isspace(peekChar()) || peekChar()==0)) getChar();}
 
     const std::vector<DFA *> machines;
     static std::vector<DFA *> constructDFA();

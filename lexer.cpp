@@ -205,6 +205,30 @@ void Lexer::pushback(char ch) {
     if(ch == '\n') {currentLineNumber--; currentColumnNumber = 0;} //We do not know the column number in previous line.
     else currentColumnNumber--;
 }
+void Lexer::ignoreWhitespaces() {
+    bool commentState = false;
+    while(isGood()) {
+        if(std::isspace(peekChar()) || peekChar() == 0) getChar(); //ignore whitespaces as usual
+        else if(commentState) {
+            if(peekChar() == '*') {
+                getChar(); //'*' was still on pushback_buffer. We removed it.
+                if(getChar() == '/') 
+                    commentState = false; //We are no longer in comment state
+                //Call getChar() twice because we are still in comment state.
+            } else getChar(); //Ignore
+        } else {
+            if(peekChar() == '/') {
+                getChar(); //'/' was still on pushback_buffer. We removed it.
+                if(peekChar() == '*') {
+                    getChar(); commentState = true; //We are in comment state
+                } else {
+                    pushback('/'); //Pass on slash to the lexer
+                    return; //Because this is NOT a whitespace
+                }
+            } else return; //NOT a whitespace
+        }
+    }
+}
 std::vector<DFA *> Lexer::constructDFA() {
     std::vector<DFA *> mvec; mvec.reserve(TokenTypes.size());
     mvec.push_back(new IgnoreCaseMatch("CREATE", CREATE));
