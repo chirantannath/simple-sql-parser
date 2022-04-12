@@ -42,33 +42,17 @@ public: //The following becomes implicitly public.
         IntermediateSymbol& operator=(TokenType) noexcept;
         IntermediateSymbol& operator=(IntermediateSymbol&&) noexcept;
         
-        bool operator==(const IntermediateSymbol &symb) const noexcept {
-            return symbolType == symb.symbolType &&
-                (symbolType ? *symbol.nonterminal == *symb.symbol.nonterminal : symbol.terminal == symb.symbol.terminal);
-        }
-        bool operator!=(const IntermediateSymbol &symb) const noexcept {
-            return !(symbolType == symb.symbolType &&
-                (symbolType ? *symbol.nonterminal == *symb.symbol.nonterminal : symbol.terminal == symb.symbol.terminal));
-        }
+        int compare(const IntermediateSymbol&) const noexcept;
+
+        bool operator==(const IntermediateSymbol &symb) const noexcept {return compare(symb) == 0;}
+        bool operator!=(const IntermediateSymbol &symb) const noexcept {return compare(symb) != 0;}
         bool operator==(const std::string &nonterminal) const noexcept {return symbolType && *symbol.nonterminal == nonterminal;}
         bool operator==(TokenType ttype) const noexcept {return !symbolType && symbol.terminal == ttype;}
 
-        bool operator<(const IntermediateSymbol &symb) const noexcept {
-            return symbolType < symb.symbolType ||
-                (symbolType ? *symbol.nonterminal < *symb.symbol.nonterminal : symbol.terminal < symb.symbol.terminal);
-        }
-        bool operator<=(const IntermediateSymbol &symb) const noexcept {
-            return symbolType <= symb.symbolType ||
-                (symbolType ? *symbol.nonterminal <= *symb.symbol.nonterminal : symbol.terminal <= symb.symbol.terminal);
-        }
-        bool operator>(const IntermediateSymbol &symb) const noexcept {
-            return symbolType > symb.symbolType ||
-                (symbolType ? *symbol.nonterminal > *symb.symbol.nonterminal : symbol.terminal > symb.symbol.terminal);
-        }
-        bool operator>=(const IntermediateSymbol &symb) const noexcept {
-            return symbolType >= symb.symbolType ||
-                (symbolType ? *symbol.nonterminal >= *symb.symbol.nonterminal : symbol.terminal >= symb.symbol.terminal);
-        }
+        bool operator<(const IntermediateSymbol &symb) const noexcept {return compare(symb) < 0;}
+        bool operator<=(const IntermediateSymbol &symb) const noexcept {return compare(symb) <= 0;}
+        bool operator>(const IntermediateSymbol &symb) const noexcept {return compare(symb) > 0;}
+        bool operator>=(const IntermediateSymbol &symb) const noexcept {return compare(symb) >= 0;}
     };
 #ifdef DEBUG 
     void outputRules();

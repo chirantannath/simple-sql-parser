@@ -22,13 +22,14 @@ void ParserGeneratorPhase3::parsingTableAssign(size_t i, TokenType k, size_t sub
 }
 #endif
 void ParserGeneratorPhase3::init(ParserGeneratorPhase2 &pgp2) {
-    pgp2.checkIfLL1();
 #ifdef DEBUG
+    pgp2.checkIfLL1();
     std::cout<<std::endl;
     pgp2.outputRules();
     nonterminalArray = pgp2.nonterminalArray;
     rules = pgp2.rules; first = pgp2.first; follow = pgp2.follow;
 #else
+    pgp2.generateFollowSets();
     rules = std::move(pgp2.rules);
     first = std::move(pgp2.first); follow = std::move(pgp2.follow);
 #endif

@@ -3,28 +3,43 @@
 #include "error.hpp"
 #include "parser.hpp"
 
-int main(int argc, char *argv[]) {
-    try {
-        ++argv; --argc;
-        std::ifstream file;
-        if(argc > 0) file.open(argv[0]);
-        std::istream *ptr = (argc > 0) ? &file : &std::cin;
-        SimpleSqlParser::Parser parser(*ptr);
-        int errorFlag = 0;
-        while(true) {
-            try {
-                parser.continueParse();
-            } catch (SimpleSqlParser::SyntaxError ex) {
-                errorFlag = 1;
-                std::cerr<<"\n"<<ex.what()<<"\n";
-                if(parser.unrecoverable) break;
-                continue;
-            }
-            break;
+int forFile(std::istream *file, const char *fname, SimpleSqlParser::Parser *parser) {
+    int errorFlag = 0;
+    parser->reopen(file);
+    while(true) {
+        try {
+            parser->continueParse();
+        } catch (SimpleSqlParser::SyntaxError &ex) {
+            errorFlag = 1;
+            std::cerr<<"\nFrom "<<fname<<": "<<ex.what()<<"\n";
+#ifdef DEBUG 
+            if(parser->unrecoverable) std::cout<<"True\n"; else std::cout<<"False\n";
+#endif
+            if(parser->unrecoverable) break;
+            continue;
         }
-        return errorFlag;
-    } catch (SimpleSqlParser::SyntaxError ex) {
-        std::cerr<<"\n"<<ex.what()<<"\n";
+        break;
+    }
+    return errorFlag;
+}
+
+int main(int argc, char *argv[]) {
+    SimpleSqlParser::Parser *parser = nullptr;
+    try {parser = new SimpleSqlParser::Parser;}
+    catch(SimpleSqlParser::SyntaxError &ex) {
+        std::cerr<<"SQL Definition error: "<<ex.what()<<"\n";
         return 1;
     }
+    int errorSum = 0;
+    ++argv, --argc;
+    if(argc == 0) errorSum = forFile(&std::cin, "<standard input>", parser);
+    else {
+        std::ifstream file;
+        for(; argc > 0; ++argv, --argc) {
+            file.open(argv[0]);
+            errorSum += forFile(&file, argv[0], parser);
+            file.close();
+        }
+    }
+    delete parser; return errorSum;
 }

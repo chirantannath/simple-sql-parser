@@ -1,7 +1,7 @@
-CC = gcc
-CXX = g++
-COMMONFLAGS = -std=c++17
-DEBUGFLAGS = $(COMMONFLAGS) -DDEBUG -g
+CC = cc
+CXX = c++
+COMMONFLAGS = -std=c++17 -Wall -Wextra
+DEBUGFLAGS = $(COMMONFLAGS) -Werror -DDEBUG -g 
 TESTFLAGS = $(COMMONFLAGS) -g
 #Test flags is debug flags without the debug. Used for testing for release.
 RELEASEFLAGS = $(COMMONFLAGS) -O2 -s

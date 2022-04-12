@@ -3,7 +3,7 @@
 #include <istream>
 #include <string>
 #include <vector>
-#include <stack>
+#include <deque>
 #include <unordered_set>
 #include <initializer_list>
 #include <array>
@@ -16,7 +16,7 @@ typedef size_t mstate;
 enum TokenType : ttype_parent {
     //Maintain priority order of tokens.
     NONE, //None indicates an invalid token. Also used to indicate epsilon (empty string) during parser generation.
-    CREATE, TABLE, SELECT, INSERT, VALUES, INTO, PRIMARY, KEY, FROM, WHERE, BETWEEN, LIKE, IN, //Keywords
+    CREATE, TABLE, SELECT, INSERT, VALUES, INTO, PRIMARY, KEY, FROM, WHERE, BETWEEN, LIKE, IN, AND, OR, NOT, //Keywords
     STAROP, EQUALOP, GREATEROP, LESSOP, PARENOPENOP, PARENCLOSEOP, COMMAOP, EOSOP, //EOS=';' //Separator symbols
     INT, CHAR, NUMBER, //CHAR = VARCHAR; implies a string. NUMBER is double (IEE-754 double-precision floating point).
     INT_CONSTANT, CHAR_CONSTANT, NUMBER_CONSTANT, 
@@ -37,12 +37,12 @@ protected:
     virtual mstate transition(mstate fromState, char ch) noexcept = 0;
 public:
     const TokenType ttype;
-    DFA(TokenType ttype = NONE) : failed(0), ttype(ttype), noStateError(0) {}
+    DFA(TokenType ttype = NONE) : failed(0), noStateError(0), ttype(ttype) {}
     DFA(
         std::initializer_list<decltype(acceptStates)::value_type> acceptStates,
         mstate startState,
         TokenType ttype = NONE
-    ) : acceptStates(acceptStates), startState(startState), currentState(startState), failed(0), ttype(ttype), noStateError(0) {}
+    ) : acceptStates(acceptStates), startState(startState), currentState(startState), failed(0), noStateError(0), ttype(ttype) {}
     virtual ~DFA() noexcept = default;
 
     void reset() noexcept {currentState = startState; failed = 0; noStateError = 0;}
@@ -62,7 +62,7 @@ private:
     Location currentLexemeLocation;
     std::istream *src;
     
-    std::stack<char> pushback_buffer;
+    std::deque<char> pushback_buffer;
     decltype(Location::lineNumber) currentLineNumber;
     decltype(Location::startColumnNumber) currentColumnNumber;
 
@@ -80,6 +80,7 @@ public:
     void showstatus(); //Show current token status to standard output
 #endif
     Lexer(std::istream *src);
+    Lexer();
     virtual ~Lexer() noexcept;
 
     TokenType getCurrentToken() const noexcept {return currentToken;}
@@ -90,6 +91,7 @@ public:
     decltype(currentColumnNumber) getCurrentColumnNumber() const noexcept {return currentColumnNumber;}
 
     bool match(TokenType);
+    void reopen(std::istream *src);
 };
 }
 

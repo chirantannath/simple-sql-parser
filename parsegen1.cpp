@@ -77,6 +77,16 @@ ParserGeneratorPhase1::IntermediateSymbol& ParserGeneratorPhase1::IntermediateSy
     else symbol.terminal = symb.symbol.terminal;
     return *this;
 }
+int ParserGeneratorPhase1::IntermediateSymbol::compare(const IntermediateSymbol& symb) const noexcept {
+    if(symbolType < symb.symbolType) return -1;
+    else if(symbolType > symb.symbolType) return 1;
+    else if(symbolType) return symbol.nonterminal->compare(*symb.symbol.nonterminal);
+    else {
+        if(symbol.terminal < symb.symbol.terminal) return -1;
+        else if(symbol.terminal > symb.symbol.terminal) return 1;
+        else return 0;
+    }
+}
 
 #ifdef DEBUG 
 void ParserGeneratorPhase1::outputRules() {
@@ -233,7 +243,7 @@ void ParserGeneratorPhase1::leftFactoring() {
 #endif
         std::unordered_map<size_t, std::pair<std::string, std::vector<std::vector<IntermediateSymbol>>>> newNonterminals; 
         for(size_t i = 0; i < nonterminalArray.size(); i++) {
-            const std::string &nonterminal = nonterminalArray[i];
+            //const std::string &nonterminal = nonterminalArray[i];
             const auto newNonterminal = leftFactoring(i);
             if(newNonterminal.second.size() > 0) {
                 newNonterminals[i] = newNonterminal;

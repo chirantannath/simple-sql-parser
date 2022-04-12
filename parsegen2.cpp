@@ -35,27 +35,36 @@ void ParserGeneratorPhase2::init(ParserGeneratorPhase1 &pgp1) {
             std::vector<Symbol> newSubRule; newSubRule.resize(subRule.size());
             std::transform(subRule.cbegin(), subRule.cend(), newSubRule.begin(), [&](const ParserGeneratorPhase1::IntermediateSymbol &isymb){
                 Symbol symb;
-                if((symb.symbolType = isymb.symbolType)) 
+                if((symb.symbolType = isymb.symbolType)) {
                     symb.symbol.nonterminalIndex = 
                         std::find(nonterminalArray.cbegin(), nonterminalArray.cend(), *(isymb.symbol.nonterminal)) - nonterminalArray.cbegin();
-                else symb.symbol.terminal = isymb.symbol.terminal;
+                    if(symb.symbol.nonterminalIndex >= nonterminalArray.size())
+                        throw SyntaxError("Nonterminal " + (*isymb.symbol.nonterminal) + " not found. Check your CFG.");
+                } else symb.symbol.terminal = isymb.symbol.terminal;
                 return symb;
             });
             newSubRule.shrink_to_fit(); return newSubRule;
         }); SetUtil::setify(newRule);
         return newRule;
     });
+#ifdef DEBUG
+    std::cout<<"\n";
+    outputRules();
+#endif
 }
 void ParserGeneratorPhase2::generateFirstSets() {
     bool runScan;
     first.resize(nonterminalArray.size());
+    std::vector<bool> allStarted(nonterminalArray.size(), false);
     do {
         runScan = false;
         for(size_t i = 0; i < nonterminalArray.size(); i++) {
-            const std::string &nonterminal = nonterminalArray[i];
+            //const std::string &nonterminal = nonterminalArray[i];
             std::vector<TokenType> newSet(first[i]); //These are sorted sets so efficient searches can be done.
             //Need explicit copy above otherwise it will not work.
-            if(newSet.empty()) runScan = true;
+#ifdef DEBUG
+            std::cout<<nonterminalArray[i]<<" ::= "<<strrule(rules[i], nonterminalArray)<<"\n";
+#endif
             const auto& rule = rules[i];
             for(const auto& subRule : rule) {
                 bool allNullable = true;
@@ -76,7 +85,7 @@ void ParserGeneratorPhase2::generateFirstSets() {
                 if(allNullable) {newSet.push_back(NONE); SetUtil::setify(newSet);}
             }
             SetUtil::setify(newSet);
-            if(newSet != first[i]) runScan = true;
+            if(!allStarted[i] || newSet != first[i]) allStarted[i] = runScan = true;
             first[i] = std::move(newSet);
         }
     } while(runScan);
@@ -118,17 +127,23 @@ void ParserGeneratorPhase2::generateFollowSets() {
     follow.resize(nonterminalArray.size());
     follow[0] = std::vector<TokenType>({EOI});
     bool runScan;
+    std::vector<bool> allStarted(nonterminalArray.size(), false);
+#ifdef DEBUG 
+    size_t run = 0;
+#endif
     do {
         runScan = false;
+#ifdef DEBUG 
+        run++; std::cout<<"Run "<<run<<" for follow sets\n";
+#endif 
         for(size_t k = 0; k < nonterminalArray.size(); k++) {
-            const std::string &nonterminal = nonterminalArray[k];
+            //const std::string &nonterminal = nonterminalArray[k];
             const auto& rule = rules[k];
             for(const auto& subRule : rule) {
                 for(size_t i = 0; i < subRule.size(); i++) {
                     const auto& targetSymbol = subRule[i];
                     if(!targetSymbol.symbolType) continue; //If not a nonterminal
                     std::vector<TokenType> newSet(follow[targetSymbol.symbol.nonterminalIndex]); //explicit copy required
-                    if(newSet.empty()) runScan = true;
                     
                     const auto betaSet = compositeFirstSet(subRule.begin()+i+1, subRule.end(), first);
                     newSet.insert(newSet.end(), betaSet.begin(), betaSet.end()); SetUtil::setify(newSet);
@@ -140,7 +155,9 @@ void ParserGeneratorPhase2::generateFollowSets() {
                         {newSet.insert(newSet.end(), alphaSet.begin(), alphaSet.end()); SetUtil::setify(newSet);}
                     
                     SetUtil::setify(newSet);
-                    if(newSet != follow[targetSymbol.symbol.nonterminalIndex]) runScan = true;
+                    if(!allStarted[targetSymbol.symbol.nonterminalIndex] || 
+                        newSet != follow[targetSymbol.symbol.nonterminalIndex]) 
+                            allStarted[targetSymbol.symbol.nonterminalIndex] = runScan = true;
                     follow[targetSymbol.symbol.nonterminalIndex] = std::move(newSet);
                 }
             }
@@ -155,6 +172,7 @@ void ParserGeneratorPhase2::generateFollowSets() {
     }
 #endif 
 }
+#ifdef DEBUG 
 void ParserGeneratorPhase2::checkIfLL1() {
     generateFollowSets(); //required
     std::stringstream err(std::stringstream::out);
@@ -165,12 +183,10 @@ void ParserGeneratorPhase2::checkIfLL1() {
             !SetUtil::isdisjoint(first[i].begin(), first[i].end(), follow[i].begin(), follow[i].end())) {
             err<<"Grammar is not LL(1); for nonterminal "<<nonterminal
                 <<"\nThe nonterminal produces an empty string and first and follow sets are not disjoint.";
-#ifdef DEBUG 
             err<<"\nFirst set: ";
             for(auto& symb : first[i]) err<<TokenTypeNames[symb]<<" ";
             err<<"\nFollow set: ";
             for(auto& symb : follow[i]) err<<TokenTypeNames[symb]<<" ";
-#endif
             throw SyntaxError(err.str());
         }
         for(size_t j = 0; j < rule.size()-1; j++) for(size_t k = j+1; k < rule.size(); k++) {
@@ -179,19 +195,18 @@ void ParserGeneratorPhase2::checkIfLL1() {
             const auto prod1First = compositeFirstSet(prod1.begin(), prod1.end(), first);
             const auto prod2First = compositeFirstSet(prod2.begin(), prod2.end(), first);
             if(SetUtil::isdisjoint(prod1First.begin(), prod1First.end(), prod2First.begin(), prod2First.end())) continue;
-            err<<"Grammar is not LL(1); for nonterminal"<<nonterminal
+            err<<"Grammar is not LL(1); for nonterminal "<<nonterminal
                 <<"\nFirst sets for two of the productions of the nonterminal are not disjoint.";
-#ifdef DEBUG 
             err<<"\nFor productions:\n";
             err<<nonterminal<<" ::= "<<strSubRule(prod1, nonterminalArray)<<"; first set = ";
             for(auto& symb : prod1First) err<<TokenTypeNames[symb]<<" ";
             err<<"\n"<<nonterminal<<" ::= "<<strSubRule(prod2, nonterminalArray)<<"; first set = ";
             for(auto& symb : prod2First) err<<TokenTypeNames[symb]<<" ";
-#endif
             throw SyntaxError(err.str());
         }
     }
 }
+#endif
 }
 
 #include "setutil.cpp"

@@ -17,30 +17,14 @@ struct Symbol {
     } symbol;
     unsigned symbolType : 1; //1 or true value if nonterminal
 
-    bool operator==(const Symbol &symb) const noexcept {
-        return symbolType == symb.symbolType && 
-            (symbolType ? symbol.nonterminalIndex == symb.symbol.nonterminalIndex : symbol.terminal == symb.symbol.terminal);
-    }
-    bool operator!=(const Symbol &symb) const noexcept {
-        return !(symbolType == symb.symbolType && 
-            (symbolType ? symbol.nonterminalIndex == symb.symbol.nonterminalIndex : symbol.terminal == symb.symbol.terminal));
-    }
-    bool operator<(const Symbol &symb) const noexcept {
-        return symbolType < symb.symbolType || 
-            (symbolType ? symbol.nonterminalIndex < symb.symbol.nonterminalIndex : symbol.terminal < symb.symbol.terminal);
-    }
-    bool operator<=(const Symbol &symb) const noexcept {
-        return symbolType <= symb.symbolType || 
-            (symbolType ? symbol.nonterminalIndex <= symb.symbol.nonterminalIndex : symbol.terminal <= symb.symbol.terminal);
-    }
-    bool operator>(const Symbol &symb) const noexcept {
-        return symbolType > symb.symbolType || 
-            (symbolType ? symbol.nonterminalIndex > symb.symbol.nonterminalIndex : symbol.terminal > symb.symbol.terminal);
-    }
-    bool operator>=(const Symbol &symb) const noexcept {
-        return symbolType >= symb.symbolType || 
-            (symbolType ? symbol.nonterminalIndex >= symb.symbol.nonterminalIndex : symbol.terminal >= symb.symbol.terminal);
-    }
+    int compare(const Symbol&) const noexcept;
+
+    bool operator==(const Symbol &symb) const noexcept {return compare(symb) == 0;}
+    bool operator!=(const Symbol &symb) const noexcept {return compare(symb) != 0;}
+    bool operator<(const Symbol &symb) const noexcept {return compare(symb) < 0;}
+    bool operator<=(const Symbol &symb) const noexcept {return compare(symb) <= 0;}
+    bool operator>(const Symbol &symb) const noexcept {return compare(symb) > 0;}
+    bool operator>=(const Symbol &symb) const noexcept {return compare(symb) >= 0;}
 };
 inline Symbol terminal(TokenType ttype) {Symbol s; s.symbolType = 0; s.symbol.terminal = ttype; return s;}
 inline Symbol nonterminal(size_t ntindex) {Symbol s; s.symbolType = 1; s.symbol.nonterminalIndex = ntindex; return s;}
@@ -81,10 +65,12 @@ public:
     Lexer lexer;
     bool firstParse;
 
-    Parser(ParserGeneratorPhase3&, std::istream&);
+    Parser(ParserGeneratorPhase3&, std::istream *);
     void init(ParserGeneratorPhase3&);
 public:
-    Parser(std::istream&);
+    Parser(std::istream *);
+    Parser(); //No file?
+    void reopen(std::istream *);
     void continueParse(); //continue or start; throws exception on error and can be used to resume even after error.
     
     bool unrecoverable; //Flag set if we get an unrecoverable error (usually unexpected tokens.)

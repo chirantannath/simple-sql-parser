@@ -20,7 +20,9 @@ public:
     void init(ParserGeneratorPhase1&);
     void generateFirstSets();
     void generateFollowSets();
+#ifdef DEBUG
     void checkIfLL1(); //throws SyntaxException
+#endif
     ParserGeneratorPhase2(ParserGeneratorPhase1 &pgp1) {init(pgp1);}
     ParserGeneratorPhase2() {ParserGeneratorPhase1 pgp1; init(pgp1);}
 

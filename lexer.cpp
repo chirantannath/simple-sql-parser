@@ -10,7 +10,7 @@
 namespace SimpleSqlParser {
 const std::array<TokenType, EOI+1> TokenTypes = {
     NONE, //None indicates an invalid token. Also used to indicate epsilon (empty string) during parser generation.
-    CREATE, TABLE, SELECT, INSERT, VALUES, INTO, PRIMARY, KEY, FROM, WHERE, BETWEEN, LIKE, IN, //Keywords
+    CREATE, TABLE, SELECT, INSERT, VALUES, INTO, PRIMARY, KEY, FROM, WHERE, BETWEEN, LIKE, IN, AND, OR, NOT, //Keywords
     STAROP, EQUALOP, GREATEROP, LESSOP, PARENOPENOP, PARENCLOSEOP, COMMAOP, EOSOP, //EOS=';' //Separator symbols
     INT, CHAR, NUMBER, //CHAR = VARCHAR; implies a string. NUMBER is double (IEE-754 double-precision floating point).
     INT_CONSTANT, CHAR_CONSTANT, NUMBER_CONSTANT, 
@@ -21,8 +21,8 @@ const std::array<TokenType, EOI+1> TokenTypes = {
 
 const char *TokenTypeNames[] = {
     "NONE",
-    "CREATE", "TABLE", "SELECT", "INSERT", "VALUES", "INTO", "PRIMARY", "KEY", "FROM", "WHERE", "BETWEEN", "LIKE", "IN",
-    "*(star)", "=(equals)", ">(greater)", "<(less)", "\'(\'(open-parentheses)", "\')\'(close-parentheses)", "\',\'(comma)", "\';\'(end-of-statement)",
+    "CREATE", "TABLE", "SELECT", "INSERT", "VALUES", "INTO", "PRIMARY", "KEY", "FROM", "WHERE", "BETWEEN", "LIKE", "IN", "AND", "OR", "NOT",
+    "\'*\'", "\'=\'", "\'>\'", "\'<\'", "\'(\'", "\')\'", "\',\'", "\';\'",
     "INT", "CHAR", "NUMBER",
     "integer-constant", "string-constant", "numeric-constant",
     "identifier",
@@ -74,15 +74,15 @@ public:
     bool isAlphabet(char ch) const noexcept {return std::strchr(key, std::tolower(ch)) || std::strchr(key, std::toupper(ch)) ? true : false;}
 };
 
-//DFA subclass for IDENTIFIER. Regex=a(a|d)* where a=alpha,d=digit
+//DFA subclass for IDENTIFIER. Regex=a(a|d)* where a=alpha or underscore,d=digit
 struct Identifier : public virtual DFA {
     Identifier() : DFA({2}, 0, IDENTIFIER) {}
-    bool isAlphabet(char ch) const noexcept {return std::isdigit(ch) || std::isalpha(ch);}
+    bool isAlphabet(char ch) const noexcept {return std::isdigit(ch) || std::isalpha(ch) || ch == '_';}
 protected:
     mstate transition(mstate s, char ch) noexcept {
         switch(s) {
         case 0:
-            if(std::isalpha(ch)) return 2;
+            if(std::isalpha(ch) || ch == '_') return 2;
             else {failed = 1; return 1;}
         case 1: failed = 1; return 1; //We know we have failed.
         case 2: return 2;
@@ -113,7 +113,7 @@ protected:
 //DFA subclass for CHAR_CONSTANT. Regex='c*'|"c*" where c=any character except ' and "
 struct CharConstant : public virtual DFA {
     CharConstant() : DFA({2}, 0, CHAR_CONSTANT) {}
-    bool isAlphabet(char ch) const noexcept {return true;}
+    bool isAlphabet(char) const noexcept {return true;}
 protected:
     mstate transition(mstate s, char ch) noexcept {
         switch(s) {
@@ -187,7 +187,7 @@ protected:
 char Lexer::getChar() {
     char ch=0; //We get a null character when src->get(ch) does not change ch.
     if(pushback_buffer.empty()) src->get(ch);
-    else {ch = pushback_buffer.top(); pushback_buffer.pop();}
+    else {ch = pushback_buffer.back(); pushback_buffer.pop_back();}
     if(ch == '\n') {currentLineNumber++; currentColumnNumber = 1;}
     else currentColumnNumber++;
     return ch;
@@ -196,12 +196,12 @@ char Lexer::peekChar() {
     char ch=0; //We get a null character when src->get(ch) does not change ch.
     if(pushback_buffer.empty()) {
         src->get(ch);
-        pushback_buffer.push(ch);
-    } else ch = pushback_buffer.top();
+        pushback_buffer.push_back(ch);
+    } else ch = pushback_buffer.back();
     return ch;
 }
 void Lexer::pushback(char ch) {
-    pushback_buffer.push(ch);
+    pushback_buffer.push_back(ch);
     if(ch == '\n') {currentLineNumber--; currentColumnNumber = 0;} //We do not know the column number in previous line.
     else currentColumnNumber--;
 }
@@ -220,6 +220,9 @@ std::vector<DFA *> Lexer::constructDFA() {
     mvec.push_back(new IgnoreCaseMatch("BETWEEN", BETWEEN));
     mvec.push_back(new IgnoreCaseMatch("LIKE", LIKE));
     mvec.push_back(new IgnoreCaseMatch("IN", IN));
+    mvec.push_back(new IgnoreCaseMatch("AND", AND));
+    mvec.push_back(new IgnoreCaseMatch("OR", OR));
+    mvec.push_back(new IgnoreCaseMatch("NOT", NOT));
     mvec.push_back(new IgnoreCaseMatch("*", STAROP));
     mvec.push_back(new IgnoreCaseMatch("=", EQUALOP));
     mvec.push_back(new IgnoreCaseMatch(">", GREATEROP));
@@ -307,9 +310,16 @@ void Lexer::showstatus() {
         <<","<<currentColumnNumber<<"]\n";
 } 
 #endif
-Lexer::Lexer(std::istream *src) : src(src), machines(constructDFA()), currentToken(NONE), currentLineNumber(1),
-    currentColumnNumber(1) {}
+Lexer::Lexer(std::istream *src) : currentToken(NONE), src(src), currentLineNumber(1),
+    currentColumnNumber(1), machines(constructDFA()) {}
+Lexer::Lexer() : currentToken(NONE), src(nullptr), currentLineNumber(0), 
+    currentColumnNumber(0), machines(constructDFA()) {}
 Lexer::~Lexer() noexcept {for(DFA *ptr : machines) delete ptr;}
+void Lexer::reopen(std::istream *src) {
+    currentToken = NONE; currentLexeme.clear(); currentLexemeLocation = Location();
+    this->src = src; pushback_buffer.clear(); currentLineNumber = 1; currentColumnNumber = 1;
+    for(DFA *ptr : machines) ptr->reset();
+}
 bool Lexer::match(TokenType mttype)  {
     if(currentToken != mttype) return false;
     getNextToken();
